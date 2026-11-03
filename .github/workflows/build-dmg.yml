@@ -42,8 +42,8 @@ jobs:
       - name: Configure local.properties
         run: |
           cat << 'EOF' > local.properties
-          NUVIO_SUPABASE_URL=${{ secrets.NUVIO_SUPABASE_URL || 'https://nuvio.supabase.co' }}
-          NUVIO_SUPABASE_ANON_KEY=${{ secrets.NUVIO_SUPABASE_ANON_KEY || 'dummy' }}
+          NUVIO_SUPABASE_URL=${{ secrets.NUVIO_SUPABASE_URL || 'https://api.nuvio.tv' }}
+          NUVIO_SUPABASE_ANON_KEY=${{ secrets.NUVIO_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzgxNTIxMzQ2LCJleHAiOjE5MzkyMDEzNDZ9.tmQaj682pwzehpqlgCDMnySOqiUvpgRbrE43T4VJpDI' }}
           TRAKT_CLIENT_ID=${{ secrets.TRAKT_CLIENT_ID || 'dummy' }}
           TRAKT_CLIENT_SECRET=${{ secrets.TRAKT_CLIENT_SECRET || 'dummy' }}
           MDBLIST_CLIENT_ID=${{ secrets.MDBLIST_CLIENT_ID || 'dummy' }}
