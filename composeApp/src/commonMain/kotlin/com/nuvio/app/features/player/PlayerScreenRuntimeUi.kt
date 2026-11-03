@@ -613,6 +613,10 @@ internal fun PlayerScreenRuntime.RenderPlayerRuntimeUi() {
         if (renderPlayerSurface) {
             val surfaceSource = currentPlayerSurfaceSource
             val sourceAvailable = surfaceSource != null
+            if (isDesktop) {
+                // mpv on desktop keeps reconnecting and never reports a dead stream, so detect it here.
+                PlaybackStartupWatchdogEffect(sourceUrl = surfaceSource?.sourceUrl)
+            }
             PlatformPlayerSurface(
                 sourceUrl = surfaceSource?.sourceUrl.orEmpty(),
                 sourceAvailable = sourceAvailable,
@@ -662,6 +666,11 @@ internal fun PlayerScreenRuntime.RenderPlayerRuntimeUi() {
                         return@PlatformPlayerSurface
                     }
                     if (message != null && !isDesktop && maybeFailoverPlaybackEngine(resolvedAutoEngine)) {
+                        return@PlatformPlayerSurface
+                    }
+                    // Autoplay chose this stream and it is dead: move on to the next candidate
+                    // instead of stopping on an error the user has to dismiss.
+                    if (message != null && tryAutoSwitchToNextStream()) {
                         return@PlatformPlayerSurface
                     }
                     errorMessage = message

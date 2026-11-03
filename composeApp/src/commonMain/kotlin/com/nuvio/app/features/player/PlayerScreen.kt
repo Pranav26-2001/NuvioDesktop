@@ -47,6 +47,7 @@ internal fun PlayerScreen(
     launchId: Long? = null,
     sourceFilename: String? = null,
     stream: com.nuvio.app.features.streams.StreamItem? = null,
+    autoPlayFallbackStreams: List<com.nuvio.app.features.streams.StreamItem> = emptyList(),
 ) {
     PlayerScreenContent(
         PlayerScreenArgs(
@@ -91,6 +92,7 @@ internal fun PlayerScreen(
             sourceFilename = sourceFilename,
             onOpenPartyMedia = onOpenPartyMedia,
             stream = stream,
+            autoPlayFallbackStreams = autoPlayFallbackStreams,
         )
     )
 }

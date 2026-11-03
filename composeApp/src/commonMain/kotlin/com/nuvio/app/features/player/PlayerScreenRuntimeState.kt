@@ -275,6 +275,12 @@ internal class PlayerScreenRuntime(
     var credentialRefreshJob by mutableStateOf<Job?>(null)
     var credentialRefreshAttemptedSourceUrl by mutableStateOf<String?>(null)
 
+    /** Autoplay candidates still untried, in rank order. Empty for manually picked streams. */
+    var autoPlayFallbackQueue by mutableStateOf(args.autoPlayFallbackStreams)
+    /** Source URLs that failed to play in this session, so a failover never returns to one. */
+    val failedAutoPlaySourceUrls = mutableSetOf<String>()
+    var autoPlayFailoverCount by mutableStateOf(0)
+
     var showAudioModal by mutableStateOf(false)
     var showSubtitleModal by mutableStateOf(false)
     var showVideoSettingsModal by mutableStateOf(false)

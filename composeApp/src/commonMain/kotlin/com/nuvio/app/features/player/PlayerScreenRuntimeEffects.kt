@@ -1017,15 +1017,19 @@ internal fun PlayerScreenRuntime.tryRefreshCredentialedSourceAfterError(message:
 
             val stream = refreshedStream
             if (stream == null) {
-                errorMessage = message
-                controlsVisible = !playerControlsLocked
+                if (!tryAutoSwitchToNextStream()) {
+                    errorMessage = message
+                    controlsVisible = !playerControlsLocked
+                }
                 return@launch
             }
 
             val refreshedUrl = stream.playableDirectUrl
             if (refreshedUrl.isNullOrBlank() || refreshedUrl == failedUrl) {
-                errorMessage = message
-                controlsVisible = !playerControlsLocked
+                if (!tryAutoSwitchToNextStream()) {
+                    errorMessage = message
+                    controlsVisible = !playerControlsLocked
+                }
                 return@launch
             }
 
@@ -1066,8 +1070,10 @@ private fun PlayerScreenRuntime.retryServerSourceAfterError(message: String?): B
     credentialRefreshJob = scope.launch {
         val playback = ServerPlayback.fallback(failedUrl)
         if (playback == null) {
-            errorMessage = message
-            controlsVisible = !playerControlsLocked
+            if (!tryAutoSwitchToNextStream()) {
+                errorMessage = message
+                controlsVisible = !playerControlsLocked
+            }
             return@launch
         }
         externalSubtitles = playback.subtitles

@@ -109,7 +109,7 @@ object StreamAutoPlaySelector {
             emptyList()
         }
         val preferredReadyStream = bingeGroupCandidates.firstOrNull { stream ->
-            stream.isAutoPlayable(debridEnabled, activeResolverProviderId)
+            isAutoPlayable(stream, debridEnabled, activeResolverProviderId)
         }
         if (bingeGroupOnly) {
             val readyStreams = preferredReadyStream?.let(::listOf).orEmpty()
@@ -128,7 +128,7 @@ object StreamAutoPlaySelector {
         val preferredStream = if (preferBingeGroupInSelection && targetBingeGroup.isNotEmpty()) {
             candidateStreams.firstOrNull { stream ->
                 stream.behaviorHints.bingeGroup == targetBingeGroup &&
-                    stream.isAutoPlayable(debridEnabled, activeResolverProviderId)
+                    isAutoPlayable(stream, debridEnabled, activeResolverProviderId)
             }
         } else {
             null
@@ -183,7 +183,7 @@ object StreamAutoPlaySelector {
         val readyStreams = buildList {
             preferredStream?.let(::add)
             matchingStreams
-                .filter { it.isAutoPlayable(debridEnabled, activeResolverProviderId) }
+                .filter { isAutoPlayable(it, debridEnabled, activeResolverProviderId) }
                 .filterNot { it == preferredStream }
                 .forEach(::add)
         }
@@ -203,19 +203,24 @@ object StreamAutoPlaySelector {
         )
     }
 
-    private fun StreamItem.isAutoPlayable(
-        debridEnabled: Boolean,
-        activeResolverProviderId: String?,
+    /**
+     * Public view of the eligibility rule autoplay uses, so the player can re-check a fallback
+     * candidate before switching to it after the first choice failed to play.
+     */
+    fun isAutoPlayable(
+        stream: StreamItem,
+        debridEnabled: Boolean = true,
+        activeResolverProviderId: String? = null,
     ): Boolean =
-        playableDirectUrl != null ||
-            serverTarget != null ||
+        stream.playableDirectUrl != null ||
+            stream.serverTarget != null ||
             (
                 AppFeaturePolicy.p2pEnabled &&
-                    needsLocalDebridResolve &&
-                    p2pInfoHash != null &&
-                    !isPendingDebridAutoPlay(debridEnabled, activeResolverProviderId)
+                    stream.needsLocalDebridResolve &&
+                    stream.p2pInfoHash != null &&
+                    !stream.isPendingDebridAutoPlay(debridEnabled, activeResolverProviderId)
             ) ||
-            (debridEnabled && isAddonDebridCandidate && isReadyDebridAutoPlay(activeResolverProviderId))
+            (debridEnabled && stream.isAddonDebridCandidate && stream.isReadyDebridAutoPlay(activeResolverProviderId))
 
     private fun StreamItem.isReadyDebridAutoPlay(activeResolverProviderId: String?): Boolean =
         when {

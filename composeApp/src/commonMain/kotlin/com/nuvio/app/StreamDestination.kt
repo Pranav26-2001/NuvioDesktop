@@ -506,6 +506,16 @@ internal fun StreamDestination(
                 contentLanguage = resolveLaunchContentLanguage(),
             )
         }
+        // consumeAutoPlay() below wipes the candidate list, so hand the streams ranked after the
+        // chosen one to the player. If the chosen stream is dead the player moves to the next.
+        val autoPlayFallbackStreams = streamsUiState.autoPlayCandidates.let { candidates ->
+            val selectedIndex = candidates.indexOf(selectedStream)
+            if (selectedIndex >= 0) {
+                candidates.drop(selectedIndex + 1)
+            } else {
+                candidates.filter { it != selectedStream }
+            }
+        }
         val playerLaunch = PlayerLaunch(
             profileId = launch.profileId,
             title = launch.title,
@@ -536,6 +546,7 @@ internal fun StreamDestination(
             contentLanguage = resolveLaunchContentLanguage(),
             sourceFilename = stream.behaviorHints.filename,
             stream = stream,
+            autoPlayFallbackStreams = autoPlayFallbackStreams,
         )
         if (externalPlayerSupported && playerSettings.externalPlayerEnabled && stream.serverTarget == null) {
             openExternalPlayback(playerLaunch)

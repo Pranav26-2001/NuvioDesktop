@@ -51,6 +51,11 @@ data class PlayerLaunch(
     val contentLanguage: String? = null,
     val sourceFilename: String? = null,
     val stream: com.nuvio.app.features.streams.StreamItem? = null,
+    /**
+     * Streams that autoplay ranked after [stream], in order. Only set when this launch came from
+     * autoplay, so the player can move to the next one if the chosen stream turns out to be dead.
+     */
+    val autoPlayFallbackStreams: List<com.nuvio.app.features.streams.StreamItem> = emptyList(),
 )
 
 object PlayerLaunchStore {

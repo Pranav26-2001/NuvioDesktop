@@ -1863,6 +1863,7 @@
     <string name="notifications_test_send_failed">Failed to send a test notification.</string>
     <string name="notifications_test_sent_for">Test notification sent for %1$s.</string>
     <string name="player_unable_to_play_stream">Unable to play this stream.</string>
+    <string name="player_stream_failed_trying_next">This stream didn't work. Trying the next one…</string>
     <string name="player_engine_unavailable_rebuild">MPV player engine not available. Please rebuild the app.</string>
     <string name="profile_pin_changed_requires_refresh">This profile PIN changed. Connect once to refresh the lock on this device.</string>
     <string name="profile_pin_clear_failed">Couldn't remove PIN lock. Try again.</string>

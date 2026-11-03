@@ -292,16 +292,20 @@ internal fun PlayerScreenRuntime.switchToP2pEpisodeStream(
 internal fun PlayerScreenRuntime.switchToSource(
     stream: StreamItem,
     saveForReuse: Boolean = true,
+    // Only the automatic failover keeps the autoplay queue. A source the user picks by hand ends
+    // the autoplay chain, so a later error on it is shown instead of jumping to another stream.
+    keepAutoPlayQueue: Boolean = false,
 ) {
-    if (prepareServerForPlayer(stream) { switchToSource(it) }) return
+    if (!keepAutoPlayQueue) autoPlayFallbackQueue = emptyList()
+    if (prepareServerForPlayer(stream) { switchToSource(it, keepAutoPlayQueue = keepAutoPlayQueue) }) return
     // The resolved URL expires after a few hours, so it isn't kept for reuse.
-    if (resolveYouTubeForPlayer(stream) { switchToSource(it, saveForReuse = false) }) return
+    if (resolveYouTubeForPlayer(stream) { switchToSource(it, saveForReuse = false, keepAutoPlayQueue = keepAutoPlayQueue) }) return
     if (
         resolveDebridForPlayer(
             stream = stream,
             season = activeSeasonNumber,
             episode = activeEpisodeNumber,
-            onResolved = { switchToSource(it) },
+            onResolved = { switchToSource(it, keepAutoPlayQueue = keepAutoPlayQueue) },
             onStale = {
                 val vid = activeVideoId
                 if (vid != null) {
@@ -364,6 +368,8 @@ internal fun PlayerScreenRuntime.switchToEpisodeStream(
     serverResumeMs: Long? = null,
     saveForReuse: Boolean = true,
 ) {
+    // The autoplay queue belongs to the episode that was playing; a new episode starts fresh.
+    autoPlayFallbackQueue = emptyList()
     if (prepareServerForPlayer(stream) { switchToEpisodeStream(it, episode, serverResumeMs = newerServerResumeMs(it, episode)) }) return
     if (
         resolveYouTubeForPlayer(stream) { resolved ->
