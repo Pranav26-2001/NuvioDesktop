@@ -3,15 +3,6 @@ name: Build macOS DMG
 on:
   workflow_dispatch:
     inputs:
-      arch:
-        description: 'macOS Architecture'
-        required: true
-        type: choice
-        default: 'x86_64'
-        options:
-          - 'x86_64'
-          - 'arm64'
-          - 'all'
       create_release:
         description: 'Create/update GitHub Release with the DMG'
         required: false
@@ -27,7 +18,6 @@ permissions:
 jobs:
   build-intel:
     name: Build Intel DMG (x86_64)
-    if: ${{ github.event_name == 'push' || inputs.arch == 'x86_64' || inputs.arch == 'all' }}
     runs-on: macos-15-intel
 
     steps:
@@ -84,73 +74,6 @@ jobs:
         with:
           tag_name: ${{ github.ref_name || 'latest' }}
           name: Nuvio Desktop DMG (Intel x86_64)
-          files: |
-            composeApp/build/compose/release-dmgs/*.dmg
-            composeApp/build/compose/binaries/*/dmg/*.dmg
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  build-arm:
-    name: Build Apple Silicon DMG (arm64)
-    if: ${{ github.event_name == 'push' || inputs.arch == 'arm64' || inputs.arch == 'all' }}
-    runs-on: macos-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          lfs: true
-
-      - name: Pull macOS native runtime binaries from LFS
-        run: |
-          git lfs pull --include="composeApp/src/desktopMain/native/macos/runtime/arm64/**"
-
-      - name: Set up Java 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 17
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-
-      - name: Configure local.properties
-        run: |
-          cat << 'EOF' > local.properties
-          NUVIO_SUPABASE_URL=${{ secrets.NUVIO_SUPABASE_URL || 'https://nuvio.supabase.co' }}
-          NUVIO_SUPABASE_ANON_KEY=${{ secrets.NUVIO_SUPABASE_ANON_KEY || 'dummy' }}
-          TRAKT_CLIENT_ID=${{ secrets.TRAKT_CLIENT_ID || 'dummy' }}
-          TRAKT_CLIENT_SECRET=${{ secrets.TRAKT_CLIENT_SECRET || 'dummy' }}
-          MDBLIST_CLIENT_ID=${{ secrets.MDBLIST_CLIENT_ID || 'dummy' }}
-          EOF
-
-      - name: Build macOS DMG
-        run: |
-          ./gradlew \
-            :composeApp:packageReleaseDmg \
-            "-Pnuvio.macos.arch=arm64" \
-            -Pcompose.desktop.packaging.checkJdkVendor=false \
-            --no-configuration-cache \
-            --no-daemon \
-            --stacktrace
-
-      - name: Upload DMG Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: Nuvio-macOS-arm64-dmg
-          path: |
-            composeApp/build/compose/release-dmgs/*.dmg
-            composeApp/build/compose/binaries/*/dmg/*.dmg
-          if-no-files-found: error
-
-      - name: Release DMG
-        if: ${{ inputs.create_release != false || startsWith(github.ref, 'refs/tags/') }}
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ github.ref_name || 'latest' }}
-          name: Nuvio Desktop DMG (Apple Silicon)
           files: |
             composeApp/build/compose/release-dmgs/*.dmg
             composeApp/build/compose/binaries/*/dmg/*.dmg
