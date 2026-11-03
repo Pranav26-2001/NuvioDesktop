@@ -1279,7 +1279,7 @@ compose.desktop {
         )
 
         nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb, TargetFormat.Rpm, TargetFormat.AppImage)
+            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Exe, TargetFormat.Deb, TargetFormat.Rpm, TargetFormat.AppImage)
             packageName = "Nuvio"
             packageVersion = desktopReleasePackageVersion
             vendor = "Nuvio Media"
@@ -1419,6 +1419,35 @@ fun publishWindowsMsiArtifact(msi: File) {
     logger.lifecycle("Published Windows MSI artifact: ${publishedMsi.absolutePath}")
 }
 
+fun publishWindowsExeOutput(release: Boolean) {
+    if (!isWindowsHost) return
+
+    val distributionName = if (release) "main-release" else "main"
+    val outputDir = layout.buildDirectory.dir("compose/binaries/$distributionName/exe").get().asFile
+    val finalExe = outputDir.resolve("Nuvio-Windows-$windowsPlayerBridgeArch-$desktopReleaseVersionName.exe")
+    val defaultExe = outputDir.resolve("Nuvio-$desktopReleasePackageVersion.exe")
+    val sourceExe = defaultExe.takeIf { it.exists() }
+        ?: finalExe.takeIf { it.exists() }
+        ?: error("Expected Windows EXE output in ${outputDir.absolutePath}")
+
+    if (sourceExe.canonicalFile != finalExe.canonicalFile) {
+        sourceExe.copyTo(finalExe, overwrite = true)
+    }
+
+    logger.lifecycle("Windows EXE artifact: ${finalExe.absolutePath}")
+    publishWindowsExeArtifact(finalExe)
+}
+
+fun publishWindowsExeArtifact(exe: File) {
+    val publishedDir = layout.buildDirectory.dir("compose/release-exes").get().asFile
+    publishedDir.mkdirs()
+    val publishedExe = publishedDir.resolve(exe.name)
+    if (exe.canonicalFile != publishedExe.canonicalFile) {
+        exe.copyTo(publishedExe, overwrite = true)
+    }
+    logger.lifecycle("Published Windows EXE artifact: ${publishedExe.absolutePath}")
+}
+
 fun normalizedLinuxArch(value: String): String =
     when (value.lowercase()) {
         "amd64", "x64", "x86_64" -> "x86_64"
@@ -1477,6 +1506,20 @@ tasks.matching { it.name == "packageReleaseMsi" }.configureEach {
     notCompatibleWithConfigurationCache("Windows MSI artifact publication uses script file operations.")
     doLast {
         publishWindowsMsiOutput(release = true)
+    }
+}
+
+tasks.matching { it.name == "packageExe" }.configureEach {
+    notCompatibleWithConfigurationCache("Windows EXE artifact publication uses script file operations.")
+    doLast {
+        publishWindowsExeOutput(release = false)
+    }
+}
+
+tasks.matching { it.name == "packageReleaseExe" }.configureEach {
+    notCompatibleWithConfigurationCache("Windows EXE artifact publication uses script file operations.")
+    doLast {
+        publishWindowsExeOutput(release = true)
     }
 }
 
